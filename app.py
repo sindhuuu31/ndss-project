@@ -61,12 +61,12 @@ if st.session_state.slide == 1:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.write("• Packet Size")
-        st.write("• Packet Count")
-        st.write("• Entropy")
+        st.write("• Packet Size",min_value=0,max_value=1000)
+        st.write("• Packet Count",min_value=0,max_value=10000)
+        st.write("• Entropy",min_value=0,max_value=20)
 
     with col2:
-        st.write("• Flow Duration")
+        st.write("• Flow Duration",min_value=0,max_value=50)
         st.write("• Protocol Type")
 
     st.markdown("""
@@ -74,6 +74,7 @@ if st.session_state.slide == 1:
 
 - HTTP – Hyper Text Transfer Protocol  
 - FTP – File Transfer Protocol
+-
 """)
 
     st.markdown("---")
@@ -128,6 +129,7 @@ elif st.session_state.slide == 3:
 
     st.markdown("### Conclusion")
     st.write("Using these analysis techniques, the system predicts whether network traffic is **Safe or Malicious**.")
+
 
 
 
