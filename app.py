@@ -2,56 +2,60 @@ import streamlit as st
 import numpy as np
 import joblib
 
-st.set_page_config(page_title="NDSS - Network Decision Support System", layout="centered")
+st.set_page_config(page_title="NDSS Dashboard", layout="centered")
 
-# Load model
 model = joblib.load("threat_model.pkl")
 
-# Control slides
 if "page" not in st.session_state:
     st.session_state.page = 1
 
 # ---------- STYLE ----------
 st.markdown("""
 <style>
-.main-title{
-    font-size:36px;
+.title{
+    text-align:center;
+    font-size:34px;
     font-weight:bold;
-    text-align:center;
-    color:#0d6efd;
+    color:#1f4e79;
 }
-.sub-title{
-    text-align:center;
-    color:gray;
-}
-.report-box{
-    border:1px solid #ddd;
+
+.box{
+    border:1px solid #d0d0d0;
+    border-radius:10px;
     padding:25px;
-    border-radius:8px;
-    background:#f9f9f9;
+    margin-top:15px;
+    background-color:#f8f9fa;
 }
-.safe{
-    color:green;
-    font-size:24px;
-    font-weight:bold;
+
+.result-safe{
+    border-left:6px solid green;
+    padding:15px;
+    background:#eef9f1;
+    border-radius:6px;
 }
-.danger{
-    color:red;
-    font-size:24px;
+
+.result-danger{
+    border-left:6px solid red;
+    padding:15px;
+    background:#fdeaea;
+    border-radius:6px;
+}
+
+.section-title{
     font-weight:bold;
+    font-size:20px;
+    margin-bottom:10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- SLIDE 1 : INPUT ----------
+# ---------- SLIDE 1 ----------
 if st.session_state.page == 1:
 
-    st.markdown('<div class="main-title">Network Decision Support System</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">AI-Based Network Threat Detection</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">Network Decision Support System</div>', unsafe_allow_html=True)
 
-    st.divider()
-
-    st.subheader("Traffic Feature Input")
+    st.markdown('<div class="box">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Traffic Input Parameters</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
@@ -61,63 +65,55 @@ if st.session_state.page == 1:
     with col2:
         count = st.number_input("Packet Count", min_value=0)
 
-    entropy = st.slider("Entropy Level", 0.0, 1.0, 0.5)
+    entropy = st.slider("Entropy Level",0.0,1.0,0.5)
 
-    st.write("These parameters represent observed network traffic behaviour.")
+    st.write("These inputs represent network traffic behaviour used for AI-based threat detection.")
 
     if st.button("Run NDSS Analysis"):
-
         st.session_state.size = size
         st.session_state.count = count
         st.session_state.entropy = entropy
         st.session_state.page = 2
         st.rerun()
 
-# ---------- SLIDE 2 : RESULT ----------
-if st.session_state.page == 2:
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="main-title">NDSS Decision Report</div>', unsafe_allow_html=True)
-    st.divider()
+
+# ---------- SLIDE 2 ----------
+if st.session_state.page == 2:
 
     size = st.session_state.size
     count = st.session_state.count
     entropy = st.session_state.entropy
 
-    features = [0] * 41
+    features = [0]*41
     features[4] = size
     features[22] = count
     features[30] = entropy
 
-    prediction = model.predict(np.array(features).reshape(1, -1))
-
+    prediction = model.predict(np.array(features).reshape(1,-1))
     is_threat = prediction[0] == 1 or count > 400 or entropy > 0.8
 
-    st.markdown('<div class="report-box">', unsafe_allow_html=True)
+    st.markdown('<div class="title">NDSS Decision Report</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="box">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">AI Traffic Analysis</div>', unsafe_allow_html=True)
 
     if is_threat:
 
-        st.markdown('<div class="danger">Threat Detected (Malicious Traffic)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="result-danger">⚠ Threat Detected (Malicious Traffic)</div>', unsafe_allow_html=True)
 
-        st.write("AI Analysis:")
-        st.write(f"- Entropy level ({entropy}) suggests abnormal automated activity.")
-        st.write(f"- Packet frequency ({count}) matches common DoS or probing patterns.")
-
-        st.write("Recommended Mitigation:")
-        st.write("- Block suspicious IP address")
-        st.write("- Restrict abnormal traffic flow")
-        st.write("- Log the event for further monitoring")
+        st.write("• Entropy level suggests automated abnormal behaviour.")
+        st.write("• Packet frequency resembles DoS or probing activity.")
+        st.write("• Recommended Action: Block suspicious IP and monitor traffic.")
 
     else:
 
-        st.markdown('<div class="safe">Traffic Classified as Safe</div>', unsafe_allow_html=True)
+        st.markdown('<div class="result-safe">✔ Traffic Classified as Safe</div>', unsafe_allow_html=True)
 
-        st.write("AI Analysis:")
-        st.write("- Traffic pattern aligns with normal network behaviour.")
-        st.write("- No suspicious repetition or attack signature detected.")
-
-        st.write("System Action:")
-        st.write("- Allow access")
-        st.write("- Continue routine monitoring")
+        st.write("• Traffic pattern matches normal user behaviour.")
+        st.write("• No malicious sequence detected.")
+        st.write("• System Action: Allow access and continue monitoring.")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -125,6 +121,7 @@ if st.session_state.page == 2:
         st.session_state.page = 1
         st.rerun()
     
+
 
 
 
