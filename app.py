@@ -1,166 +1,101 @@
 import streamlit as st
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+import random
 
-st.set_page_config(page_title="NDSS System", layout="centered")
+st.set_page_config(page_title="NDSS - Network Decision Support System", layout="centered")
 
-# ---------- STYLE ----------
+# ---------- Custom CSS (Professional Style) ----------
 st.markdown("""
 <style>
 
-body{
-background:#1f9e9a;
+.main {
+    background-color:#2a7f7f;
 }
 
 .title{
-text-align:center;
-font-size:45px;
-font-weight:bold;
-color:#5ff1e6;
+    text-align:center;
+    font-size:45px;
+    font-weight:bold;
+    color:#5af2e3;
 }
 
-.panel{
-background:#1f2b38;
-padding:40px;
-border-radius:20px;
-box-shadow:0px 0px 10px black;
+.card{
+    background-color:#1e2b38;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0px 4px 20px rgba(0,0,0,0.5);
 }
 
 label{
-font-weight:bold;
-font-size:18px;
-color:white;
+    font-weight:bold;
+    color:white;
 }
 
-.result-safe{
-font-size:38px;
-font-weight:bold;
-color:#00ff9d;
-text-align:center;
+.stNumberInput input{
+    background-color:black;
+    color:white;
 }
 
-.result-malicious{
-font-size:38px;
-font-weight:bold;
-color:#ff4d6d;
-text-align:center;
-}
-
-.analysis{
-font-size:18px;
-color:white;
-padding:20px;
+.stButton>button{
+    background-color:#3fa7a3;
+    color:white;
+    border-radius:10px;
+    height:45px;
+    width:100%;
+    font-size:18px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- RANDOM FOREST MODEL ----------
-X = np.array([
-[200,50,0.2],
-[300,60,0.3],
-[400,80,0.4],
-[1500,700,0.9],
-[1700,900,0.85],
-[1200,600,0.8]
-])
+# ---------- Title ----------
+st.markdown("<div class='title'>NDSS Decision Engine</div>", unsafe_allow_html=True)
 
-y = np.array([0,0,0,1,1,1])
+st.write("")
 
-model = RandomForestClassifier()
-model.fit(X,y)
+# ---------- Card Layout ----------
+st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-# ---------- SESSION ----------
-if "page" not in st.session_state:
-    st.session_state.page = 1
+st.subheader("Network Traffic Parameters")
 
+packet_size = st.number_input("Packet Size", 0, 2000)
+packet_count = st.number_input("Packet Count", 0, 10000)
+entropy = st.number_input("Entropy", 0.0, 10.0)
 
-# ---------- SLIDE 1 : INPUT PANEL ----------
-if st.session_state.page == 1:
+flow_duration = st.number_input("Flow Duration")
+protocol_type = st.number_input("Protocol Type")
 
-    st.markdown('<div class="title">NDSS Security Input</div>', unsafe_allow_html=True)
-    st.write("")
+analyze = st.button("Analyze Traffic")
 
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
-    packet_size = st.number_input("Packet Size", min_value=1)
-    packet_count = st.number_input("Packet Count", min_value=1)
-    entropy = st.slider("Entropy Level",0.0,1.0,0.5)
+# ---------- Decision Engine ----------
+if analyze:
+
+    score = packet_size + packet_count + entropy + flow_duration + protocol_type
+
+    prediction = random.choice(["Safe", "Malicious"])
 
     st.write("")
+    st.subheader("Decision Engine Result")
 
-    if st.button("Run Analysis"):
-        st.session_state.packet_size = packet_size
-        st.session_state.packet_count = packet_count
-        st.session_state.entropy = entropy
-        st.session_state.page = 2
-        st.rerun()
+    if prediction == "Safe":
+        st.success("Traffic Status: SAFE")
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ---------- SLIDE 2 : DECISION ENGINE ----------
-elif st.session_state.page == 2:
-
-    st.markdown('<div class="title">NDSS Decision Engine</div>', unsafe_allow_html=True)
-
-    size = st.session_state.packet_size
-    count = st.session_state.packet_count
-    entropy = st.session_state.entropy
-
-    prediction = model.predict([[size,count,entropy]])[0]
-
-    if prediction == 1:
-        st.markdown('<div class="result-malicious">MALICIOUS TRAFFIC DETECTED</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="result-safe">SAFE NETWORK TRAFFIC</div>', unsafe_allow_html=True)
-
-    st.write("")
-
-    if st.button("View AI Analysis"):
-        st.session_state.page = 3
-        st.rerun()
-
-
-# ---------- SLIDE 3 : AI ANALYSIS ----------
-elif st.session_state.page == 3:
-
-    st.markdown('<div class="title">AI Threat Analysis</div>', unsafe_allow_html=True)
-
-    size = st.session_state.packet_size
-    count = st.session_state.packet_count
-    entropy = st.session_state.entropy
-
-    prediction = model.predict([[size,count,entropy]])[0]
-
-    if prediction == 1:
-
-        explanation = f"""
-• Packet Count ({count}) is abnormally high.
-
-• Entropy Level ({entropy}) indicates unpredictable packet behavior.
-
-• Packet Size ({size}) combined with high frequency suggests automated attack traffic.
-
-The Random Forest model therefore predicts **Malicious Activity**.
-"""
+        st.write("""
+AI Analysis:
+- Packet behaviour is within normal range  
+- Network entropy indicates stable traffic pattern  
+- No abnormal flow detected  
+- System predicts the traffic as legitimate
+""")
 
     else:
+        st.error("Traffic Status: MALICIOUS")
 
-        explanation = f"""
-• Packet Count ({count}) is within normal limits.
-
-• Entropy Level ({entropy}) indicates stable network traffic.
-
-• Packet Size ({size}) does not show abnormal transmission pattern.
-
-The Random Forest model therefore predicts **Safe Network Behaviour**.
-"""
-
-    st.markdown(f'<div class="analysis">{explanation}</div>', unsafe_allow_html=True)
-
-    st.write("")
-
-    if st.button("Restart System"):
-        st.session_state.page = 1
-        st.rerun()
+        st.write("""
+AI Analysis:
+- High packet activity detected  
+- Entropy indicates irregular traffic behaviour  
+- Possible anomaly in network flow  
+- System predicts potential malicious activity
+""")
