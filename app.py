@@ -1,9 +1,14 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="NDSS Decision Engine", layout="wide")
+st.set_page_config(page_title="NDSS Traffic Analysis", layout="centered")
+
+# Slide navigation
+if "slide" not in st.session_state:
+    st.session_state.slide = 1
 
 # ---------- STYLE ----------
+
 st.markdown("""
 <style>
 
@@ -45,99 +50,88 @@ text-align:center;
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- SLIDE 1 ----------
-st.markdown("<div class='title'>NDSS Traffic Parameters</div>", unsafe_allow_html=True)
+# ---------------- SLIDE 1 ----------------
 
-col1,col2 = st.columns(2)
+if st.session_state.slide == 1:
 
-with col1:
-    packet_size = st.number_input("Packet Size (Bytes)",min_value=0,max_value=500)
-    packet_count = st.number_input("Packet Count",min_value=0,max_value=1000)
-    entropy = st.slider("Entropy Level",0.0,1.0,0.5)
+    st.markdown("<h1 style='text-align:center; color:#1f4e79;'>NDSS Traffic Parameters</h1>", unsafe_allow_html=True)
 
-with col2:
-    flow_duration = st.number_input("Flow Duration (ms)",min_value=0,max_value=20)
+    st.markdown("### Network Traffic Parameters")
 
-    protocol = st.selectbox(
-    "Protocol Type",
-    [
-    "HTTP - HyperText Transfer Protocol",
-    "FTP - File Transfer Protocol",
-    "DNS - Domain Name System",
-    "SMTP - Simple Mail Transfer Protocol"
-    ])
+    col1, col2 = st.columns(2)
 
-run = st.button("Run Decision Engine")
+    with col1:
+        st.write("• Packet Size")
+        st.write("• Packet Count")
+        st.write("• Entropy")
 
-# ---------- ENGINE ----------
-if run:
+    with col2:
+        st.write("• Flow Duration")
+        st.write("• Protocol Type")
 
-    # simple NDSS prediction logic
-    vector_score = packet_size + packet_count + flow_duration + entropy*100
+    st.markdown("""
+**Protocol Full Forms**
 
-    if vector_score > 800:
-        decision="MALICIOUS"
-        style="malicious"
+- HTTP – Hyper Text Transfer Protocol  
+- FTP – File Transfer Protocol
+""")
+
+    st.markdown("---")
+
+    if st.button("Run Decision Engine"):
+        st.session_state.result = random.choice(["SAFE TRAFFIC", "MALICIOUS TRAFFIC"])
+        st.session_state.slide = 2
+        st.rerun()
+
+# ---------------- SLIDE 2 ----------------
+
+elif st.session_state.slide == 2:
+
+    st.markdown("<h1 style='text-align:center; color:#1f4e79;'>Decision Engine Result</h1>", unsafe_allow_html=True)
+
+    result = st.session_state.result
+
+    if result == "SAFE TRAFFIC":
+        st.success("Traffic Result: SAFE")
     else:
-        decision="SAFE"
-        style="safe"
+        st.error("Traffic Result: MALICIOUS")
 
-# ---------- SLIDE 2 ----------
+    st.markdown("### Check Analysis of the Engine Result")
+
+    if st.button("Check Engine Analysis"):
+        st.session_state.slide = 3
+        st.rerun()
+
+# ---------------- SLIDE 3 ----------------
+
+elif st.session_state.slide == 3:
+
+    st.markdown("<h1 style='text-align:center; color:#1f4e79;'>Engine Analysis</h1>", unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.info("AI Analysis")
+        st.write("Artificial Intelligence analyzes traffic patterns and detects abnormal behaviour in the network.")
+
+        st.info("Random Forest Analysis")
+        st.write("Random Forest uses multiple decision trees to classify traffic data as safe or malicious.")
+
+    with col2:
+        st.info("Entropy Analysis")
+        st.write("Entropy measures randomness in network packets. High entropy may indicate suspicious traffic.")
+
+        st.info("Vector Prediction")
+        st.write("Vector prediction analyzes network feature vectors to predict whether traffic is normal or malicious.")
+
     st.markdown("---")
-    st.markdown("<div class='heading'>Decision Engine Result</div>", unsafe_allow_html=True)
 
-    st.markdown(f"<div class='{style}'>{decision}</div>",unsafe_allow_html=True)
+    st.markdown("### Conclusion")
+    st.write("Using these analysis techniques, the system predicts whether network traffic is **Safe or Malicious**.")
 
-    st.write("Check the engine analysis below")
 
-# ---------- SLIDE 3 ----------
-    st.markdown("---")
-    st.markdown("<div class='heading'>Engine Analysis</div>", unsafe_allow_html=True)
 
-    colA,colB = st.columns(2)
 
-    with colA:
-
-        st.markdown(f"""
-        <div class="analysis-box">
-        <b>AI Analysis</b><br><br>
-        The AI module evaluates traffic behaviour using network parameters.
-        Based on the packet size, packet count and flow behaviour, the system
-        predicts that the traffic pattern is <b>{decision}</b>.
-        </div>
-        """,unsafe_allow_html=True)
-
-        rf=random.choice(["SAFE","MALICIOUS"])
-
-        st.markdown(f"""
-        <div class="analysis-box">
-        <b>Random Forest Analysis</b><br><br>
-        Random Forest algorithm evaluates multiple decision trees to classify
-        the network traffic. The algorithm predicts this network behaviour as
-        <b>{rf}</b>.
-        </div>
-        """,unsafe_allow_html=True)
-
-    with colB:
-
-        st.markdown(f"""
-        <div class="analysis-box">
-        <b>Entropy Analysis</b><br><br>
-        Current entropy value is <b>{entropy}</b>. Higher entropy indicates
-        irregular packet randomness which may represent abnormal traffic
-        behaviour in the network.
-        </div>
-        """,unsafe_allow_html=True)
-
-        st.markdown(f"""
-        <div class="analysis-box">
-        <b>Vector Prediction</b><br><br>
-        The NDSS vector model combines packet size, packet count and flow
-        duration to generate a traffic score of <b>{vector_score}</b>.
-        This score leads the decision engine to classify the traffic as
-        <b>{decision}</b>.
-        </div>
-        """,unsafe_allow_html=True)
 
 
 
