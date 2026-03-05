@@ -1,80 +1,103 @@
 import streamlit as st
 
-# Page settings
-st.set_page_config(page_title="NDSS Project", layout="wide")
-
-# Title
-st.title("Network Decision Support System (NDSS)")
-st.markdown("### AI Based Network Monitoring & Decision Support")
-
-# ---- SLIDE 1 ----
-st.header("Overview")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.info("""
-    **Project Name**
-    
-    Network Decision Support System
-    
-    **Purpose**
-    
-    Helps administrators analyze network traffic and take better decisions.
-    """)
-
-with col2:
-    st.success("""
-    **Technology Used**
-    
-    - Python
-    - Machine Learning
-    - Network Analysis
-    - Streamlit Deployment
-    """)
-
-# ---- SLIDE 2 ----
-st.header("Project Modules")
-
-col3, col4, col5 = st.columns(3)
-
-with col3:
-    st.warning("""
-    **Data Collection**
-    
-    Collects network traffic data from users.
-    """)
-
-with col4:
-    st.warning("""
-    **Analysis Engine**
-    
-    Uses algorithms to analyze patterns and risks.
-    """)
-
-with col5:
-    st.warning("""
-    **Decision Support**
-    
-    Suggests actions for administrators.
-    """)
-
-# ---- INPUT SECTION ----
-st.header("Network Decision Input")
-
-traffic = st.selectbox(
-    "Select Network Traffic Type",
-    ["Normal Traffic", "Suspicious Traffic", "High Load Traffic"]
+# Page configuration
+st.set_page_config(
+    page_title="NDSS - Network Decision Support System",
+    layout="wide"
 )
 
-if st.button("Analyze Network"):
-    if traffic == "Normal Traffic":
-        st.success("Network is stable. No action required.")
-    elif traffic == "Suspicious Traffic":
-        st.error("Possible security risk detected!")
-    else:
-        st.warning("High network load. Optimize bandwidth.")
+# Sidebar
+st.sidebar.title("NDSS Dashboard")
+page = st.sidebar.radio(
+    "Navigation",
+    ["Home", "System Overview", "Network Analysis"]
+)
+
+# HOME PAGE (Slide 1)
+if page == "Home":
+    st.title("Network Decision Support System")
+    st.subheader("AI Based Network Monitoring Platform")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### Project Description")
+        st.info(
+            """
+            The **Network Decision Support System (NDSS)** helps administrators
+            monitor network traffic and make intelligent decisions
+            based on data analysis.
+            """
+        )
+
+    with col2:
+        st.markdown("### Technologies Used")
+        st.success(
+            """
+            • Python  
+            • Machine Learning  
+            • Network Traffic Analysis  
+            • Streamlit Web Interface
+            """
+        )
+
+# SYSTEM OVERVIEW (Slide 2)
+elif page == "System Overview":
+
+    st.title("System Modules")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.warning(
+            """
+            ### Data Collection
+            Collects network traffic data from users and devices.
+            """
+        )
+
+    with col2:
+        st.warning(
+            """
+            ### Data Processing
+            Analyzes network packets and behavior patterns.
+            """
+        )
+
+    with col3:
+        st.warning(
+            """
+            ### Decision Support
+            Provides suggestions for network administrators.
+            """
+        )
+
+# ANALYSIS PAGE
+elif page == "Network Analysis":
+
+    st.title("Network Traffic Analysis")
+
+    traffic = st.selectbox(
+        "Select Network Traffic Type",
+        [
+            "Normal Traffic",
+            "Suspicious Traffic",
+            "High Network Load"
+        ]
+    )
+
+    if st.button("Analyze Network"):
+
+        if traffic == "Normal Traffic":
+            st.success("Network is operating normally.")
+
+        elif traffic == "Suspicious Traffic":
+            st.error("Suspicious activity detected. Check network security.")
+
+        elif traffic == "High Network Load":
+            st.warning("Network traffic is high. Consider bandwidth optimization.")
     
+
 
 
 
