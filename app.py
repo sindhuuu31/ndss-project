@@ -59,12 +59,12 @@ if st.session_state.slide == 1:
     col1, col2 = st.columns(2)
 
     with col1:
-        packet_size = st.write("Packet Size", 0, 1000)
-        packet_count = st.write("Packet Count", 0, 10000)
-        entropy = st.write("Entropy", 0, 20)
+        packet_size = st.number_input("Packet Size", 0, 1000)
+        packet_count = st.number_input("Packet Count", 0, 10000)
+        entropy = st.number_input("Entropy", 0, 20)
 
     with col2:
-        flow_duration = st.write("Flow Duration", 0, 500)
+        flow_duration = st.number_input("Flow Duration", 0, 500)
         protocol = st.selectbox(
             "Protocol Type",
             ["HTTP - Hyper Text Transfer Protocol",
@@ -123,6 +123,7 @@ elif st.session_state.slide == 3:
 
     st.markdown("### Conclusion")
     st.write("Using these analysis techniques, the system predicts whether the network traffic is **Safe or Malicious**.")
+
 
 
 
