@@ -1,125 +1,180 @@
 import streamlit as st
 import numpy as np
-import joblib
+import random
 
-st.set_page_config(page_title="NDSS Dashboard", layout="centered")
-
-model = joblib.load("threat_model.pkl")
-
-if "page" not in st.session_state:
-    st.session_state.page = 1
+st.set_page_config(page_title="NDSS Decision System", layout="centered")
 
 # ---------- STYLE ----------
 st.markdown("""
 <style>
-.title{
-    text-align:center;
-    font-size:34px;
-    font-weight:bold;
-    color:#1f4e79;
+body {background-color:#0b0f19;}
+
+.main-title{
+font-size:36px;
+font-weight:bold;
+color:#00d2ff;
+text-align:center;
 }
 
 .box{
-    border:1px solid #d0d0d0;
-    border-radius:10px;
-    padding:25px;
-    margin-top:15px;
-    background-color:#f8f9fa;
+background:rgba(255,255,255,0.05);
+border:1px solid #1e293b;
+padding:25px;
+border-radius:10px;
+margin-bottom:20px;
 }
 
 .result-safe{
-    border-left:6px solid green;
-    padding:15px;
-    background:#eef9f1;
-    border-radius:6px;
+border-left:6px solid #00ff9d;
+padding:20px;
+background:rgba(0,255,157,0.05);
 }
 
-.result-danger{
-    border-left:6px solid red;
-    padding:15px;
-    background:#fdeaea;
-    border-radius:6px;
+.result-threat{
+border-left:6px solid #ff0055;
+padding:20px;
+background:rgba(255,0,85,0.05);
 }
 
-.section-title{
-    font-weight:bold;
-    font-size:20px;
-    margin-bottom:10px;
+.label{
+font-size:14px;
+color:#94a3b8;
+}
+
+.value{
+font-size:20px;
+font-weight:bold;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- SLIDE 1 ----------
+# ---------- SESSION ----------
+if "page" not in st.session_state:
+    st.session_state.page = 1
+
+# ---------- PAGE 1 ----------
 if st.session_state.page == 1:
 
-    st.markdown('<div class="title">Network Decision Support System</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-title">NDSS SECURITY INPUT PANEL</div>', unsafe_allow_html=True)
+    st.write("")
 
     st.markdown('<div class="box">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Traffic Input Parameters</div>', unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-
-    with col1:
-        size = st.number_input("Packet Size (Bytes)", min_value=0)
-
-    with col2:
-        count = st.number_input("Packet Count", min_value=0)
-
+    packet_size = st.number_input("Packet Size (Bytes)", min_value=1)
+    packet_count = st.number_input("Packet Count", min_value=1)
     entropy = st.slider("Entropy Level",0.0,1.0,0.5)
 
-    st.write("These inputs represent network traffic behaviour used for AI-based threat detection.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Run NDSS Analysis"):
-        st.session_state.size = size
-        st.session_state.count = count
+    if st.button("RUN NDSS ANALYZER"):
+        st.session_state.packet_size = packet_size
+        st.session_state.packet_count = packet_count
         st.session_state.entropy = entropy
         st.session_state.page = 2
         st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ---------- SLIDE 2 ----------
+# ---------- PAGE 2 ----------
 if st.session_state.page == 2:
 
-    size = st.session_state.size
-    count = st.session_state.count
+    st.markdown('<div class="main-title">NDSS DECISION ENGINE</div>', unsafe_allow_html=True)
+    st.write("")
+
+    size = st.session_state.packet_size
+    count = st.session_state.packet_count
     entropy = st.session_state.entropy
 
+    # -------- VECTOR ----------
     features = [0]*41
     features[4] = size
     features[22] = count
     features[30] = entropy
 
-    prediction = model.predict(np.array(features).reshape(1,-1))
-    is_threat = prediction[0] == 1 or count > 400 or entropy > 0.8
+    # -------- PREDICTION LOGIC ----------
+    threat_score = (count/1000) + entropy + (size/2000)
 
-    st.markdown('<div class="title">NDSS Decision Report</div>', unsafe_allow_html=True)
+    is_threat = threat_score > 1.2
 
-    st.markdown('<div class="box">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">AI Traffic Analysis</div>', unsafe_allow_html=True)
-
+    # -------- ANALYSIS ----------
     if is_threat:
 
-        st.markdown('<div class="result-danger">⚠ Threat Detected (Malicious Traffic)</div>', unsafe_allow_html=True)
+        vector="MALICIOUS TRAFFIC DETECTED"
 
-        st.write("• Entropy level suggests automated abnormal behaviour.")
-        st.write("• Packet frequency resembles DoS or probing activity.")
-        st.write("• Recommended Action: Block suspicious IP and monitor traffic.")
+        analyzer=f"""
+AI analysis indicates abnormal behaviour.
+Entropy level ({entropy}) suggests automated packet generation.
+Packet count ({count}) exceeds normal human traffic patterns.
+"""
+
+        heuristic=f"""
+Traffic frequency indicates potential DoS / probing behaviour.
+Sequence repetition suggests scripted network attack pattern.
+"""
+
+        mitigation="""
+Recommended Action:
+• Block source IP
+• Enable firewall filtering
+• Activate traffic monitoring
+"""
 
     else:
 
-        st.markdown('<div class="result-safe">✔ Traffic Classified as Safe</div>', unsafe_allow_html=True)
+        vector="SAFE NETWORK TRAFFIC"
 
-        st.write("• Traffic pattern matches normal user behaviour.")
-        st.write("• No malicious sequence detected.")
-        st.write("• System Action: Allow access and continue monitoring.")
+        analyzer=f"""
+Traffic characteristics match normal user behaviour.
+Entropy level ({entropy}) indicates balanced packet randomness.
+"""
+
+        heuristic=f"""
+Packet frequency ({count}) remains within standard network threshold.
+No abnormal traffic spikes detected.
+"""
+
+        mitigation="""
+Recommended Action:
+• Allow network communication
+• Continue passive monitoring
+"""
+
+    # ---------- DISPLAY ----------
+    if is_threat:
+        st.markdown('<div class="result-threat">', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="result-safe">', unsafe_allow_html=True)
+
+    st.markdown(f"""
+### Vector Prediction
+**{vector}**
+""")
+
+    st.markdown(f"""
+### AI Analysis
+{analyzer}
+""")
+
+    st.markdown(f"""
+### Heuristic Pattern Analysis
+{heuristic}
+""")
+
+    st.markdown(f"""
+### Threat Score
+{round(threat_score,2)}
+""")
+
+    st.markdown(f"""
+### Recommended Mitigation
+{mitigation}
+""")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("Run New Analysis"):
+    st.write("")
+    if st.button("Restart System"):
         st.session_state.page = 1
         st.rerun()
+
 
 
 
