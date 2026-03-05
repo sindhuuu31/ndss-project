@@ -56,22 +56,20 @@ if st.session_state.slide == 1:
 
     st.markdown("<h1 style='text-align:center; color:#1f4e79;'>NDSS Traffic Parameters</h1>", unsafe_allow_html=True)
 
-    st.markdown("### Network Traffic Parameters")
+    col1, col2 = st.columns(2)
 
- col1, col2 = st.columns(2)
+    with col1:
+        packet_size = st.slider("Packet Size", 0, 1000)
+        packet_count = st.slider("Packet Count", 0, 10000)
+        entropy = st.slider("Entropy", 0, 20)
 
-with col1:
-    packet_size = st.slider("Packet Size", 0, 1000)
-    packet_count = st.slider("Packet Count", 0, 10000)
-    entropy = st.slider("Entropy", 0, 20)
-
-with col2:
-    flow_duration = st.slider("Flow Duration", 0, 50)
-    protocol = st.selectbox(
-        "Protocol Type",
-        ["HTTP - Hyper Text Transfer Protocol",
-         "FTP - File Transfer Protocol"]
-    )
+    with col2:
+        flow_duration = st.slider("Flow Duration", 0, 500)
+        protocol = st.selectbox(
+            "Protocol Type",
+            ["HTTP - Hyper Text Transfer Protocol",
+             "FTP - File Transfer Protocol"]
+        )
 
     st.markdown("---")
 
@@ -124,7 +122,11 @@ elif st.session_state.slide == 3:
     st.markdown("---")
 
     st.markdown("### Conclusion")
-    st.write("Using these analysis techniques, the system predicts whether network traffic is **Safe or Malicious**.")
+    st.write("Using these analysis techniques, the system predicts whether the network traffic is **Safe or Malicious**.")
+
+
+
+
 
 
 
