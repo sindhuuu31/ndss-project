@@ -1,103 +1,125 @@
 import streamlit as st
+import numpy as np
+import joblib
 
-# Page configuration
-st.set_page_config(
-    page_title="NDSS - Network Decision Support System",
-    layout="wide"
-)
+st.set_page_config(page_title="NDSS Dashboard", layout="centered")
 
-# Sidebar
-st.sidebar.title("NDSS Dashboard")
-page = st.sidebar.radio(
-    "Navigation",
-    ["Home", "System Overview", "Network Analysis"]
-)
+model = joblib.load("threat_model.pkl")
 
-# HOME PAGE (Slide 1)
-if page == "Home":
-    st.title("Network Decision Support System")
-    st.subheader("AI Based Network Monitoring Platform")
+if "page" not in st.session_state:
+    st.session_state.page = 1
+
+# ---------- STYLE ----------
+st.markdown("""
+<style>
+.title{
+    text-align:center;
+    font-size:34px;
+    font-weight:bold;
+    color:#1f4e79;
+}
+
+.box{
+    border:1px solid #d0d0d0;
+    border-radius:10px;
+    padding:25px;
+    margin-top:15px;
+    background-color:#f8f9fa;
+}
+
+.result-safe{
+    border-left:6px solid green;
+    padding:15px;
+    background:#eef9f1;
+    border-radius:6px;
+}
+
+.result-danger{
+    border-left:6px solid red;
+    padding:15px;
+    background:#fdeaea;
+    border-radius:6px;
+}
+
+.section-title{
+    font-weight:bold;
+    font-size:20px;
+    margin-bottom:10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------- SLIDE 1 ----------
+if st.session_state.page == 1:
+
+    st.markdown('<div class="title">Network Decision Support System</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="box">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Traffic Input Parameters</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("### Project Description")
-        st.info(
-            """
-            The **Network Decision Support System (NDSS)** helps administrators
-            monitor network traffic and make intelligent decisions
-            based on data analysis.
-            """
-        )
+        size = st.number_input("Packet Size (Bytes)", min_value=0)
 
     with col2:
-        st.markdown("### Technologies Used")
-        st.success(
-            """
-            • Python  
-            • Machine Learning  
-            • Network Traffic Analysis  
-            • Streamlit Web Interface
-            """
-        )
+        count = st.number_input("Packet Count", min_value=0)
 
-# SYSTEM OVERVIEW (Slide 2)
-elif page == "System Overview":
+    entropy = st.slider("Entropy Level",0.0,1.0,0.5)
 
-    st.title("System Modules")
+    st.write("These inputs represent network traffic behaviour used for AI-based threat detection.")
 
-    col1, col2, col3 = st.columns(3)
+    if st.button("Run NDSS Analysis"):
+        st.session_state.size = size
+        st.session_state.count = count
+        st.session_state.entropy = entropy
+        st.session_state.page = 2
+        st.rerun()
 
-    with col1:
-        st.warning(
-            """
-            ### Data Collection
-            Collects network traffic data from users and devices.
-            """
-        )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    with col2:
-        st.warning(
-            """
-            ### Data Processing
-            Analyzes network packets and behavior patterns.
-            """
-        )
 
-    with col3:
-        st.warning(
-            """
-            ### Decision Support
-            Provides suggestions for network administrators.
-            """
-        )
+# ---------- SLIDE 2 ----------
+if st.session_state.page == 2:
 
-# ANALYSIS PAGE
-elif page == "Network Analysis":
+    size = st.session_state.size
+    count = st.session_state.count
+    entropy = st.session_state.entropy
 
-    st.title("Network Traffic Analysis")
+    features = [0]*41
+    features[4] = size
+    features[22] = count
+    features[30] = entropy
 
-    traffic = st.selectbox(
-        "Select Network Traffic Type",
-        [
-            "Normal Traffic",
-            "Suspicious Traffic",
-            "High Network Load"
-        ]
-    )
+    prediction = model.predict(np.array(features).reshape(1,-1))
+    is_threat = prediction[0] == 1 or count > 400 or entropy > 0.8
 
-    if st.button("Analyze Network"):
+    st.markdown('<div class="title">NDSS Decision Report</div>', unsafe_allow_html=True)
 
-        if traffic == "Normal Traffic":
-            st.success("Network is operating normally.")
+    st.markdown('<div class="box">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">AI Traffic Analysis</div>', unsafe_allow_html=True)
 
-        elif traffic == "Suspicious Traffic":
-            st.error("Suspicious activity detected. Check network security.")
+    if is_threat:
 
-        elif traffic == "High Network Load":
-            st.warning("Network traffic is high. Consider bandwidth optimization.")
-    
+        st.markdown('<div class="result-danger">⚠ Threat Detected (Malicious Traffic)</div>', unsafe_allow_html=True)
 
+        st.write("• Entropy level suggests automated abnormal behaviour.")
+        st.write("• Packet frequency resembles DoS or probing activity.")
+        st.write("• Recommended Action: Block suspicious IP and monitor traffic.")
+
+    else:
+
+        st.markdown('<div class="result-safe">✔ Traffic Classified as Safe</div>', unsafe_allow_html=True)
+
+        st.write("• Traffic pattern matches normal user behaviour.")
+        st.write("• No malicious sequence detected.")
+        st.write("• System Action: Allow access and continue monitoring.")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if st.button("Run New Analysis"):
+        st.session_state.page = 1
+        st.rerun()
 
 
 
