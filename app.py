@@ -1,64 +1,82 @@
 import streamlit as st
 import numpy as np
-import random
+from sklearn.ensemble import RandomForestClassifier
 
-st.set_page_config(page_title="NDSS Decision System", layout="centered")
+st.set_page_config(page_title="NDSS", layout="centered")
 
 # ---------- STYLE ----------
 st.markdown("""
 <style>
-body {background-color:#0b0f19;}
 
-.main-title{
-font-size:36px;
-font-weight:bold;
-color:#00d2ff;
-text-align:center;
+body {
+background-color:#0b0f19;
 }
 
-.box{
+.title{
+text-align:center;
+font-size:38px;
+font-weight:bold;
+color:#00d2ff;
+}
+
+.panel{
 background:rgba(255,255,255,0.05);
 border:1px solid #1e293b;
-padding:25px;
+padding:35px;
 border-radius:10px;
-margin-bottom:20px;
 }
 
 .result-safe{
-border-left:6px solid #00ff9d;
-padding:20px;
-background:rgba(0,255,157,0.05);
-}
-
-.result-threat{
-border-left:6px solid #ff0055;
-padding:20px;
-background:rgba(255,0,85,0.05);
-}
-
-.label{
-font-size:14px;
-color:#94a3b8;
-}
-
-.value{
-font-size:20px;
+text-align:center;
+font-size:40px;
 font-weight:bold;
+color:#00ff9d;
 }
+
+.result-malicious{
+text-align:center;
+font-size:40px;
+font-weight:bold;
+color:#ff0055;
+}
+
+.analysis{
+margin-top:30px;
+font-size:18px;
+color:#cbd5f5;
+text-align:center;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+# ---------- RANDOM FOREST MODEL ----------
+X = np.array([
+[200,50,0.2],
+[300,60,0.3],
+[1500,800,0.9],
+[1700,900,0.85],
+[400,100,0.4],
+[1200,700,0.8]
+])
+
+y = np.array([0,0,1,1,0,1])  # 0 = Safe, 1 = Malicious
+
+model = RandomForestClassifier()
+model.fit(X,y)
 
 # ---------- SESSION ----------
 if "page" not in st.session_state:
     st.session_state.page = 1
 
+
 # ---------- PAGE 1 ----------
 if st.session_state.page == 1:
 
-    st.markdown('<div class="main-title">NDSS SECURITY INPUT PANEL</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">NDSS SECURITY INPUT PANEL</div>', unsafe_allow_html=True)
     st.write("")
 
-    st.markdown('<div class="box">', unsafe_allow_html=True)
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
 
     packet_size = st.number_input("Packet Size (Bytes)", min_value=1)
     packet_count = st.number_input("Packet Count", min_value=1)
@@ -66,114 +84,77 @@ if st.session_state.page == 1:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("RUN NDSS ANALYZER"):
+    st.write("")
+
+    if st.button("RUN DECISION ENGINE"):
+
         st.session_state.packet_size = packet_size
         st.session_state.packet_count = packet_count
         st.session_state.entropy = entropy
         st.session_state.page = 2
         st.rerun()
 
+
 # ---------- PAGE 2 ----------
 if st.session_state.page == 2:
 
-    st.markdown('<div class="main-title">NDSS DECISION ENGINE</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">NDSS DECISION ENGINE</div>', unsafe_allow_html=True)
     st.write("")
 
     size = st.session_state.packet_size
     count = st.session_state.packet_count
     entropy = st.session_state.entropy
 
-    # -------- VECTOR ----------
-    features = [0]*41
-    features[4] = size
-    features[22] = count
-    features[30] = entropy
+    # Random Forest Prediction
+    prediction = model.predict([[size,count,entropy]])[0]
 
-    # -------- PREDICTION LOGIC ----------
-    threat_score = (count/1000) + entropy + (size/2000)
+    if prediction == 1:
 
-    is_threat = threat_score > 1.2
+        st.markdown(
+        '<div class="result-malicious">MALICIOUS TRAFFIC DETECTED</div>',
+        unsafe_allow_html=True
+        )
 
-    # -------- ANALYSIS ----------
-    if is_threat:
+        explanation = f"""
+Random Forest analysis detected abnormal network behaviour.
 
-        vector="MALICIOUS TRAFFIC DETECTED"
+• Packet Count ({count}) is unusually high indicating possible automated traffic.
 
-        analyzer=f"""
-AI analysis indicates abnormal behaviour.
-Entropy level ({entropy}) suggests automated packet generation.
-Packet count ({count}) exceeds normal human traffic patterns.
-"""
+• Entropy Level ({entropy}) suggests irregular packet randomness common in malicious scripts.
 
-        heuristic=f"""
-Traffic frequency indicates potential DoS / probing behaviour.
-Sequence repetition suggests scripted network attack pattern.
-"""
+• Packet Size ({size}) combined with high traffic frequency increases attack probability.
 
-        mitigation="""
-Recommended Action:
-• Block source IP
-• Enable firewall filtering
-• Activate traffic monitoring
+Therefore, the system classifies this traffic as **MALICIOUS**.
 """
 
     else:
 
-        vector="SAFE NETWORK TRAFFIC"
+        st.markdown(
+        '<div class="result-safe">SAFE NETWORK TRAFFIC</div>',
+        unsafe_allow_html=True
+        )
 
-        analyzer=f"""
-Traffic characteristics match normal user behaviour.
-Entropy level ({entropy}) indicates balanced packet randomness.
+        explanation = f"""
+Random Forest model predicts this traffic as normal network activity.
+
+• Packet Count ({count}) remains within normal traffic limits.
+
+• Entropy Level ({entropy}) indicates stable packet randomness.
+
+• Packet Size ({size}) does not show abnormal transmission behaviour.
+
+Therefore, the system classifies this traffic as **SAFE**.
 """
 
-        heuristic=f"""
-Packet frequency ({count}) remains within standard network threshold.
-No abnormal traffic spikes detected.
-"""
-
-        mitigation="""
-Recommended Action:
-• Allow network communication
-• Continue passive monitoring
-"""
-
-    # ---------- DISPLAY ----------
-    if is_threat:
-        st.markdown('<div class="result-threat">', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="result-safe">', unsafe_allow_html=True)
-
-    st.markdown(f"""
-### Vector Prediction
-**{vector}**
-""")
-
-    st.markdown(f"""
-### AI Analysis
-{analyzer}
-""")
-
-    st.markdown(f"""
-### Heuristic Pattern Analysis
-{heuristic}
-""")
-
-    st.markdown(f"""
-### Threat Score
-{round(threat_score,2)}
-""")
-
-    st.markdown(f"""
-### Recommended Mitigation
-{mitigation}
-""")
-
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="analysis">{explanation}</div>', unsafe_allow_html=True)
 
     st.write("")
-    if st.button("Restart System"):
+    st.write("")
+
+    if st.button("Restart"):
         st.session_state.page = 1
         st.rerun()
+
 
 
 
