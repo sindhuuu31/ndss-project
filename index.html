@@ -97,7 +97,7 @@
         const form = new URLSearchParams();
         form.append('size', s); form.append('count', c); form.append('entropy', e);
 
-        const response = await fetch('/predict', { method: 'POST', body: form });
+        const response = await fetch('http://127.0.0.1:8080/predict', { method: 'POST', body: form });
         const data = await response.json();
 
         const box = document.getElementById('resultBox');
