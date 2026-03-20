@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDSS Real-Time Threat Detection</title>
+    <!-- Use Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- GLOBAL HEADER -->
+        <header class="glass-header">
+            <div class="logo">
+                <div class="pulse-dot"></div>
+                <h1>NDSS <span>Live</span></h1>
+            </div>
+            
+            <nav class="top-nav">
+                <button class="nav-btn active" onclick="switchTab('page-dashboard', this)">LIVE DASHBOARD</button>
+                <button class="nav-btn" onclick="switchTab('page-manual', this)">MANUAL TESTER</button>
+                <button class="nav-btn" onclick="switchTab('page-overview', this)">PROJECT OVERVIEW</button>
+            </nav>
+
+            <div class="sys-status">
+                <span class="status-label">SYSTEM STATUS:</span>
+                <span id="global-status" class="status-value safe">ACTIVE (MONITORING)</span>
+            </div>
+        </header>
+
+        <!-- PAGE 1: LIVE DASHBOARD -->
+        <main class="page-section" id="page-dashboard">
+            <div class="page-heading">
+                <h2>Live Network Monitoring Dashboard</h2>
+                <p>Real-time packet analysis and active AI threat diagnostic log.</p>
+            </div>
+
+            <section class="metrics">
+                <div class="metric-card glass-panel">
+                    <h3>LIVE PACKET COUNT (/s)</h3>
+                    <h2 id="metric-count">0</h2>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3>AVG PACKET SIZE (B)</h3>
+                    <h2 id="metric-size">0</h2>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3>TRAFFIC ENTROPY</h3>
+                    <h2 id="metric-entropy">0.0</h2>
+                </div>
+                <div class="metric-card glass-panel">
+                    <h3>LAST THREAT STATUS</h3>
+                    <h2 id="metric-threat" class="text-safe">NORMAL</h2>
+                </div>
+            </section>
+
+            <div class="dashboard-grid">
+                <div class="chart-container glass-panel">
+                    <div class="panel-header"><h2>Live Traffic Analysis Chart</h2></div>
+                    <div style="flex-grow: 1; position: relative;"><canvas id="trafficChart"></canvas></div>
+                </div>
+
+                <div class="ai-explain-container glass-panel">
+                    <div class="panel-header"><h2>Live AI Threat Log</h2></div>
+                    <div id="ai-log" class="ai-log">
+                        <!-- Logs generated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- PAGE 2: MANUAL TESTER -->
+        <main class="page-section hidden" id="page-manual">
+            <div class="page-heading">
+                <h2>Manual Threat Intelligence Engine</h2>
+                <p>Input exact network metrics into the NDSS to receive a detailed, rule-based diagnostic report.</p>
+            </div>
+            
+            <div class="manual-input-container glass-panel">
+                <div class="panel-header" style="text-align: center; border:none; margin-bottom: 20px;">
+                    <h2 style="font-size: 1.8rem;">Enter Traffic Parameters</h2>
+                </div>
+                
+                <form id="manual-form">
+                    <div class="input-grid">
+                        <div class="form-group">
+                            <label>Packet Count (/sec)</label>
+                            <input type="number" id="manual-count" required placeholder="e.g. 15000">
+                        </div>
+                        <div class="form-group">
+                            <label>Packet Size (Bytes)</label>
+                            <input type="number" id="manual-size" required placeholder="e.g. 64">
+                        </div>
+                        <div class="form-group">
+                            <label>Traffic Entropy (0.0 to 10.0)</label>
+                            <input type="number" step="0.01" id="manual-entropy" required placeholder="e.g. 1.5">
+                        </div>
+                    </div>
+                    <button type="submit" class="analyze-btn massive-btn">ANALYZE DATA WITH AI ENGINE</button>
+                </form>
+            </div>
+            <div style="text-align:center; padding: 40px; color: var(--text-dim);">
+                <p><i>The NDSS Random Forest Model will calculate precise threat probabilities based on your exact numbers.</i></p>
+            </div>
+        </main>
+
+        <!-- PAGE 3: OVERVIEW -->
+        <main class="page-section hidden" id="page-overview">
+            <div class="page-heading">
+                <h2>NDSS Architecture & System Visualization</h2>
+                <p>Explore the logic frameworks and classification parameters driving the decision engine.</p>
+            </div>
+            
+            <div class="slideshow-container glass-panel">
+                <div class="slides" id="slide-wrapper" style="height: 400px;">
+                    <div class="slide slide-active" data-index="0">
+                        <h3 class="slide-title">1. NDSS Architecture Framework</h3>
+                        <div class="slide-content">
+                            <p>The Network Decision Support System (NDSS) continuously monitors traffic from routers. Packets are streamed sequentially without data loss into the active processor.</p>
+                            <div class="visual-box">
+                                <div class="node router">Router Sensor</div>
+                                <div class="arrow">→</div>
+                                <div class="node fifo">Data Stream Processor</div>
+                                <div class="arrow">→</div>
+                                <div class="node ai">AI Machine Learning</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slide" data-index="1">
+                        <h3 class="slide-title">2. Critical Analysis Parameters</h3>
+                        <div class="slide-content" style="font-size: 1.3rem;">
+                            <ul>
+                                <li style="margin-bottom:20px;"><strong>Packet Count:</strong> High sudden surges (>5000/s) signify volumetric flood attacks.</li>
+                                <li style="margin-bottom:20px;"><strong>Packet Size:</strong> Legitimate web traffic varies. Constant fixed sizes (like exactly 64 bytes) strictly indicate automated attack tools.</li>
+                                <li style="margin-bottom:20px;"><strong>Entropy:</strong> Low entropy indicates highly repetitive, non-random payload bytes. High entropy implies natural encrypted user data.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="slide" data-index="2">
+                        <h3 class="slide-title">3. Intelligent Threat Explainer</h3>
+                        <div class="slide-content" style="font-size: 1.3rem;">
+                            <p>Using a <strong>Random Forest machine learning model</strong>, the system calculates exact probabilities of malicious behavior. Instead of just filtering and blocking traffic silently, the AI generates a detailed explanation of <em>exactly why</em> the decision was made, analyzing <em>WHAT</em> occurred and <em>HOW</em> it reached the decision, fully empowering network administrators.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slide-controls">
+                    <button class="slide-btn" onclick="prevSlide()">◀ PREVIOUS VISUAL</button>
+                    <span id="slide-indicator">1 / 3</span>
+                    <button class="slide-btn" onclick="nextSlide()">NEXT VISUAL ▶</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- GRAND AI RESPONSE MODAL -->
+    <div id="ai-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel" style="width: 800px;">
+            <div class="modal-header">
+                <h2>AI THREAT ANALYSIS REPORT</h2>
+                <button class="close-btn" onclick="closeModal()">✖</button>
+            </div>
+            <div class="modal-body">
+                <h1 id="modal-status">...</h1>
+                <div id="modal-reason" class="modal-reason-text"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="analyze-btn" onclick="closeModal()" style="font-size: 1.2rem; width: 60%; margin: 0 auto; display: block;">Acknowledge & Close Report</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
