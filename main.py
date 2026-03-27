@@ -12,7 +12,7 @@ from pydantic import BaseModel
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
+FRONTEND_DIR = BASE_DIR
 MODEL_PATH = os.path.join(BASE_DIR, "ndss_model.pkl")
 
 try:
@@ -151,7 +151,7 @@ def manual_analysis(data: ManualData):
         "detailed_explanation": final_reason
     }
 
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="static")
 
 @app.get("/")
 def read_index():
